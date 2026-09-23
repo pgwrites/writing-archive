@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Payal Gusain — Writing Archive</title>
+
+<!-- Social share preview (LinkedIn, Facebook, iMessage, etc.) -->
+<meta property="og:title" content="Payal Gusain — Writing Archive">
+<meta property="og:description" content="A living archive of my long-form writing.">
+<meta property="og:image" content="https://pgwrites.github.io/writing-portfolio/og-thumbnail.png">
+<meta property="og:url" content="https://pgwrites.github.io/writing-portfolio/">
+<meta property="og:type" content="website">
+
+<!-- Twitter/X uses its own tag set, separate from Open Graph -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Payal Gusain — Writing Archive">
+<meta name="twitter:description" content="A living archive of my long-form writing.">
+<meta name="twitter:image" content="https://pgwrites.github.io/writing-portfolio/og-thumbnail.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<style>
+  :root{
+    --paper: #FFFFFF;
+    --ink: #000000;
+    --name-red: #432826;
+    --line: #000000;
+    --font-archaic: 'Roboto Mono', 'Courier New', monospace;
+    --font-title: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    --max-w: 1180px;
+    --right-col-w: 300px;
+    --col-gap: 48px;
+    --page-pad: 56px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--font-archaic);
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:inherit;text-decoration:none;}
+  ::selection{background:var(--ink); color:var(--paper);}
+
+  /* ---------- Page frame (nav + title + list, with a full-height vertical divider) ---------- */
+  .page-frame{
+    position:relative;
+    padding:0 var(--page-pad) 90px;
+  }
+  .vline{
+    position:absolute;
+    top:0;
+    bottom:0;
+    right:calc(var(--right-col-w) + (var(--col-gap) / 2) + var(--page-pad));
+    width:1px;
+    background:var(--ink);
+    pointer-events:none;
+  }
+  .pf-row{
+    display:grid;
+    grid-template-columns:1fr var(--right-col-w);
+    column-gap:var(--col-gap);
+  }
+  @media (max-width: 880px){
+    .page-frame{padding-left:20px; padding-right:20px;}
+    .vline{display:none;}
+    .pf-row{grid-template-columns:1fr;}
+    .check-row{padding:9px 0; font-size:15px;}
+    .check-row input{width:19px; height:19px;}
+    .filters{display:none;}
+    .bio-col{
+      margin-top:20px;
+      padding-top:20px;
+      border-top:1px solid var(--ink);
+    }
+    .nav-row{padding-top:24px;}
+    .list-item{
+      grid-template-columns:28px 1fr;
+      gap:10px;
+      padding:20px 0;
+    }
+    .list-item .bullet-icon{font-size:14px;}
+    .list-item .card-title{
+      line-height:1.5;
+      padding:2px 0;
+    }
+  }
+
+  .nav-row{
+    display:flex;
+    gap:28px;
+    padding:32px 0 10px;
+    font-family:var(--font-archaic);
+    font-size:16px;
+  }
+  .nav-row a{
+    color:var(--ink);
+    text-decoration:none;
+  }
+  .nav-row a:hover{
+    text-decoration:underline;
+    text-decoration-color:#1a73e8;
+  }
+
+  .hr-full{border-top:1px solid var(--ink);}
+
+  .topfold-row{padding:32px 0 12px;}
+  .title-col h1{
+    font-family:var(--font-title);
+    font-weight:700;
+    font-size:23px;
+    text-transform:uppercase;
+    letter-spacing:0.03em;
+    margin:0 0 12px;
+    color:#1a73e8;
+  }
+  .title-col .subtitle{
+    font-family:var(--font-archaic);
+    font-size:16px;
+    font-weight:400;
+    line-height:1.4;
+    color:var(--ink);
+    margin:0;
+    max-width:34ch;
+  }
+  .bio-col .bio{
+    font-family:var(--font-archaic);
+    font-size:16px;
+    line-height:1.6;
+    color:var(--ink);
+    margin:0;
+  }
+
+  /* ---------- Content list ---------- */
+  .list-header-row{
+    align-items:baseline;
+    padding-bottom:14px;
+  }
+  .list-header-row h2{
+    font-family:var(--font-archaic);
+    font-size:18px;
+    font-weight:700;
+    color:var(--ink);
+    margin:0;
+  }
+  .filter-col{
+    display:flex;
+    flex-direction:column;
+    align-items:flex-start;
+  }
+  #filterToggle{
+    background:none;
+    border:none;
+    padding:0;
+    font-family:var(--font-archaic);
+    font-size:16px;
+    font-weight:700;
+    color:var(--ink);
+    cursor:pointer;
+  }
+  #filterToggle:hover{
+    text-decoration:underline;
+    text-decoration-color:#1a73e8;
+  }
+
+  .grid{
+    display:flex;
+    flex-direction:column;
+    width:calc(100% + (var(--col-gap) / 2));
+  }
+  @media (max-width: 880px){
+    .grid{width:100%;}
+  }
+
+  .list-item{
+    display:grid;
+    grid-template-columns:44px 1fr;
+    gap:18px;
+    padding:26px 0;
+    border-bottom:1px solid var(--ink);
+  }
+  .list-item .bullet-icon{
+    font-family:var(--font-archaic);
+    font-size:16px;
+    font-weight:700;
+    letter-spacing:0.03em;
+    color:#555;
+    margin-top:2px;
+  }
+  .list-item .item-body{
+    min-width:0;
+  }
+  .list-item .card-title{
+    font-family:var(--font-archaic);
+    font-size:16px;
+    font-weight:700;
+    line-height:1.4;
+    color:var(--ink);
+    margin:0 0 8px;
+    display:inline-block;
+  }
+  .list-item .card-title:hover{
+    text-decoration:underline;
+    text-decoration-color:#1a73e8;
+  }
+  .list-item .item-description{
+    font-family:var(--font-archaic);
+    font-size:16px;
+    line-height:1.6;
+    color:var(--ink);
+    margin:0 0 10px;
+  }
+  .list-item .card-meta{
+    font-family:var(--font-archaic);
+    font-size:13px;
+    color:#555;
+    margin:0;
+  }
+  .list-item .card-meta .sep{margin:0 6px;}
+
+  .empty-state{
+    text-align:center;
+    padding:60px 20px;
+    color:#555;
+    font-family:var(--font-archaic);
+    font-size:16px;
+  }
+
+  /* ---------- Filters (collapsible, in the right column) ---------- */
+  .filters{
+    padding-top:26px;
+  }
+  .filter-groups{
+    display:none;
+    padding-top:14px;
+  }
+  .filter-groups.open{display:block;}
+  .filter-group{margin-bottom:14px;}
+  .filter-group:last-child{margin-bottom:0;}
+  .filter-group h4{
+    font-family:var(--font-archaic);
+    font-size:12px;
+    font-weight:700;
+    color:#555;
+    text-transform:uppercase;
+    letter-spacing:0.05em;
+    margin:0 0 8px;
+  }
+  .check-row{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:4px 0;
+    cursor:pointer;
+    font-family:var(--font-archaic);
+    font-size:16px;
+    font-weight:400;
+    color:var(--ink);
+  }
+  .check-row input{
+    width:14px;
+    height:14px;
+    accent-color:var(--ink);
+    cursor:pointer;
+  }
+  .check-row:hover{
+    text-decoration:underline;
+    text-decoration-color:#1a73e8;
+  }
+  .clear-filters{
+    margin-top:12px;
+    font-family:var(--font-archaic);
+    font-size:14px;
+    font-weight:700;
+    color:var(--name-red);
+    background:none;
+    border:none;
+    padding:0;
+    cursor:pointer;
+  }
+  .clear-filters:hover{
+    text-decoration:underline;
+    text-decoration-color:#1a73e8;
+  }
+
+  .status-banner{
+    max-width:var(--max-w);
+    margin:20px auto 0;
+    padding:14px 18px;
+    background:#F5F5F5;
+    border:1px solid var(--ink);
+    font-family:var(--font-archaic);
+    font-size:13.5px;
+    line-height:1.6;
+  }
+  .status-banner code{
+    background:#00000010;
+    padding:1px 6px;
+    font-size:12.5px;
+  }
+
+  /* ---------- Custom cursor: blue dot, grows + says "Read" over entries ---------- */
+  @media (hover:hover) and (pointer:fine){
+    body{cursor:none;}
+    a, button, .check-row, #filterToggle, .clear-filters{cursor:none;}
+  }
+  .cursor-dot{
+    position:fixed;
+    top:0;
+    left:0;
+    width:14px;
+    height:14px;
+    border-radius:50%;
+    background:#1a73e8;
+    pointer-events:none;
+    transform:translate(-50%,-50%);
+    z-index:9998;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    transition:width 0.18s ease, height 0.18s ease, background 0.18s ease;
+  }
+  .cursor-dot span{
+    opacity:0;
+    color:#fff;
+    font-family:var(--font-archaic);
+    font-size:13px;
+    font-weight:700;
+    letter-spacing:0.04em;
+    transition:opacity 0.15s ease;
+    white-space:nowrap;
+  }
+  .cursor-dot.reading{
+    width:56px;
+    height:56px;
+  }
+  .cursor-dot.reading span{
+    opacity:1;
+  }
+  @media (hover:none), (pointer:coarse){
+    .cursor-dot{display:none;}
+  }
+
+</style>
+</head>
+<body>
+
+<div class="page-frame">
+  <div class="vline"></div>
+
+  <div class="nav-row">
+    <a href="https://mail.google.com/mail/u/0/?fs=1&tf=cm&source=mailto&to=payalgusainwrites@gmail.com" target="_blank" rel="noopener">Email</a>
+    <a href="https://www.linkedin.com/in/payalgusain/" target="_blank" rel="noopener">LinkedIn</a>
+    <a href="https://payalgusainwrites.notion.site/Content-Strategist-Organic-Growth-Marketer-for-SaaS-0f5af984ced5487bad1f5f7f3004c50f?source=copy_link" target="_blank" rel="noopener">Portfolio</a>
+  </div>
+  <div class="hr-full"></div>
+
+  <div class="pf-row topfold-row">
+    <div class="title-col">
+      <h1 id="writerName">Payal Gusain</h1>
+      <p class="subtitle">Organic growth and editorial strategist for SaaS, AI &amp; VC firms.</p>
+    </div>
+    <div class="bio-col">
+      <p class="bio" id="bioText">A living archive of my long-form writing. Pieces without my byline were ghostwritten and shared here with permission.</p>
+    </div>
+  </div>
+
+  <div id="statusBanner"></div>
+
+  <div class="pf-row list-header-row">
+    <h2>Select Work</h2>
+  </div>
+  <div class="hr-full"></div>
+
+  <div class="pf-row list-body-row">
+    <div class="grid" id="grid"></div>
+    <div class="filters" id="filtersPanel">
+      <button id="filterToggle">Filter</button>
+      <div class="filter-groups open" id="filterGroups">
+        <div class="filter-group">
+          <h4>Industry</h4>
+          <div id="industryFilters"></div>
+        </div>
+        <div class="filter-group">
+          <h4>Format</h4>
+          <div id="formatFilters"></div>
+        </div>
+        <button class="clear-filters" id="clearFilters">Clear all filters</button>
+      </div>
+    </div>
+  </div>
+  <div class="empty-state" id="emptyState" style="display:none;">Nothing matches those filters yet.</div>
+</div>
+
+
+<script>
+/*
+  ============================================================
+  HOW TO CONNECT YOUR OWN GOOGLE SHEET (2 minutes)
+  ============================================================
+  1. In Google Sheets: File → Share → Publish to web
+  2. Choose the specific sheet/tab, select "Comma-separated values (.csv)"
+  3. Click Publish, copy the generated URL
+  4. Paste it below as CSV_URL
+
+  Expected column headers (case-insensitive):
+    Title | Thumbnail | URL | Date | Industry | Format
+
+  Industry and Format filters on the right are built automatically from
+  whatever values appear in your sheet — no code changes needed once
+  connected.
+
+  If CSV_URL is left empty, or the sheet can't be reached, demo content
+  is shown instead so you can see the layout.
+  ============================================================
+*/
+const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS_2kfPophZdIi9llYbA5DUt_pndAa9GeKkcEJ6S5TyRdZNa0pIrh6wKB4B26ovaHfL8hvosdHCp5TM/pub?output=csv";
+
+// Fallback CSV source. Google's "Publish to web" CSV endpoint (above)
+// sometimes doesn't send proper cross-origin headers for a browser fetch(),
+// even though the link works fine opened directly in a tab. The /gviz/tq
+// endpoint (using the underlying spreadsheet ID, not the publish ID) is
+// generally more reliable for this. Leave as-is unless you know your
+// spreadsheet ID has changed.
+const CSV_URL_FALLBACK = "https://docs.google.com/spreadsheets/d/1bYIJU7wTHWJD2klomVuH64ic3c7yFP3RNzYWS3scPc0/gviz/tq?tqx=out:csv";
+
+// Third-tier fallback: routes the request through a public CORS proxy that
+// fetches the CSV server-side and returns it with open CORS headers. This
+// sidesteps the cross-origin issue entirely regardless of what headers
+// Google's endpoints send, or what the hosting/preview environment allows.
+// Note: relies on a third-party service (allorigins.win) staying up — fine
+// as a fallback, not ideal as your only source long-term.
+const CSV_URL_PROXY = "https://api.allorigins.win/raw?url=" + encodeURIComponent(CSV_URL);
+
+// Manually-added pieces that always appear in the list, regardless of
+// whether CSV_URL is connected or demo data is showing. Use this for
+// anything hosted locally alongside the site (like PDFs) that ISN'T
+// already a row in your spreadsheet. The BLR Airport PDF used to live
+// here, but it's now a row in the live sheet instead, so this is empty
+// to avoid showing it twice.
+const MANUAL_ENTRIES = [];
+
+const DEMO_DATA = [
+  {Title:"Rebuilding a SaaS Onboarding Flow from Scratch", Description:"A teardown of a broken activation funnel and how we rebuilt it around a single first-win moment.", URL:"#", Date:"2025-11-02", Industry:"SaaS", Format:"Case Study"},
+  {Title:"A Landing Page That Cut Bounce Rate by 40%", Description:"What changed above the fold, and why most landing pages bury their proof too far down the page.", URL:"#", Date:"2025-09-18", Industry:"Fintech", Format:"Landing Page"},
+  {Title:"Why Most Travel Booking Flows Lose Users at Step 3", Description:"The exact friction point most travel sites share, and three ways to fix it without a redesign.", URL:"#", Date:"2025-08-30", Industry:"Travel", Format:"Blog Post"},
+  {Title:"Designing for Trust: Guest Post on Fintech UX", Description:"How financial products earn (or lose) trust in the first ten seconds of a session.", URL:"#", Date:"2025-07-14", Industry:"Fintech", Format:"Guest Post"},
+  {Title:"The Anatomy of a High-Converting Pricing Page", Description:"Breaking down the structure behind pricing pages that actually reduce sales-call volume.", URL:"#", Date:"2025-06-05", Industry:"SaaS", Format:"Landing Page"},
+  {Title:"Case Study: Redesigning a Healthcare Intake Form", Description:"Cutting a 12-minute intake form down to 4 minutes without losing the data care teams needed.", URL:"#", Date:"2025-04-22", Industry:"Healthcare", Format:"Case Study"},
+  {Title:"What I Learned Writing 30 Guest Posts in a Year", Description:"The editorial patterns that got pieces accepted, and the pitches that went nowhere.", URL:"#", Date:"2025-03-11", Industry:"Personal", Format:"Blog Post"},
+  {Title:"A Travel Startup's Homepage, Line by Line", Description:"A sentence-by-sentence walkthrough of why this homepage converts better than its competitors.", URL:"#", Date:"2025-01-27", Industry:"Travel", Format:"Landing Page"},
+];
+
+function normalizeRow(row){
+  const get = (...keys) => {
+    for (const k of Object.keys(row)){
+      if (keys.includes(k.trim().toLowerCase())) return row[k];
+    }
+    return "";
+  };
+  return {
+    title: (get("title") || "Untitled").trim(),
+    description: (get("description","desc","summary") || "").trim(),
+    url: (get("url","link","article url") || "#").trim(),
+    date: (get("date","date (year)","year") || "").trim(),
+    industry: (get("industry","category") || "Uncategorized").trim(),
+    format: (get("format","type") || "Uncategorized").trim(),
+  };
+}
+
+function formatDate(d){
+  const parsed = new Date(d);
+  if (isNaN(parsed)) return d;
+  return parsed.toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
+}
+
+// Shows just the publication year on cards, regardless of whether the
+// sheet has a full date or already just a year.
+function displayYear(dateStr){
+  const match = String(dateStr || '').match(/\d{4}/);
+  return match ? match[0] : (dateStr || '');
+}
+
+// Pulls a 4-digit year out of whatever's in the Date field (handles "2023",
+// full dates, or blanks). Blank/unparseable dates sort as 0 — oldest/last —
+// instead of corrupting the whole list's order the way NaN comparisons do.
+function sortYear(dateStr){
+  const match = String(dateStr || '').match(/\d{4}/);
+  const year = match ? parseInt(match[0], 10) : 0;
+  return isNaN(year) ? 0 : year;
+}
+
+let ALL_ITEMS = [];
+let activeIndustries = new Set();
+let activeFormats = new Set();
+
+function buildFilterGroup(containerId, values, activeSet){
+  const container = document.getElementById(containerId);
+  container.innerHTML = values.map(v => `
+    <label class="check-row">
+      <input type="checkbox" value="${v}">
+      <span>${v}</span>
+    </label>
+  `).join('');
+  container.querySelectorAll('input').forEach(input => {
+    input.addEventListener('change', (e) => {
+      if (e.target.checked) activeSet.add(e.target.value);
+      else activeSet.delete(e.target.value);
+      drawList();
+    });
+  });
+}
+
+function drawList(){
+  const filtered = ALL_ITEMS.filter(i => {
+    const matchIndustry = activeIndustries.size === 0 || activeIndustries.has(i.industry);
+    const matchFormat = activeFormats.size === 0 || activeFormats.has(i.format);
+    return matchIndustry && matchFormat;
+  });
+
+  const grid = document.getElementById('grid');
+  const empty = document.getElementById('emptyState');
+
+  if (!filtered.length){
+    grid.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+
+  const numberFor = (idx) => String(idx + 1).padStart(3, '0');
+
+  grid.innerHTML = filtered.map((i, idx) => {
+    const metaText = [i.format, i.industry].filter(Boolean).join(' <span class="sep">·</span> ');
+    const descriptionHtml = i.description ? `<p class="item-description">${i.description}</p>` : '';
+    return `
+    <div class="list-item">
+      <span class="bullet-icon">${numberFor(idx)}.</span>
+      <div class="item-body">
+        <a class="card-title" href="${i.url}" target="_blank" rel="noopener">${i.title}</a>
+        ${descriptionHtml}
+        <p class="card-meta">${metaText}</p>
+      </div>
+    </div>
+  `;
+  }).join('');
+}
+
+function render(items){
+  ALL_ITEMS = items;
+  const industries = Array.from(new Set(items.map(i => i.industry).filter(Boolean))).sort();
+  const formats = Array.from(new Set(items.map(i => i.format).filter(Boolean))).sort();
+  buildFilterGroup('industryFilters', industries, activeIndustries);
+  buildFilterGroup('formatFilters', formats, activeFormats);
+  drawList();
+}
+
+document.getElementById('clearFilters').addEventListener('click', () => {
+  activeIndustries.clear();
+  activeFormats.clear();
+  document.querySelectorAll('.filters input[type="checkbox"]').forEach(cb => cb.checked = false);
+  drawList();
+});
+
+document.getElementById('filterToggle').addEventListener('click', () => {
+  document.getElementById('filterGroups').classList.toggle('open');
+});
+
+function showBanner(message){
+  document.getElementById('statusBanner').innerHTML = `<div class="status-banner">${message}</div>`;
+}
+
+function loadDemo(reason){
+  if (reason) showBanner(reason);
+  const items = [...MANUAL_ENTRIES, ...DEMO_DATA].map(normalizeRow);
+  render(items);
+}
+
+function loadFromUrl(url, onFail){
+  Papa.parse(url, {
+    download: true,
+    header: true,
+    skipEmptyLines: true,
+    complete: (results) => {
+      if (!results.data || !results.data.length){
+        onFail(`loaded but returned 0 rows`);
+        return;
+      }
+      const items = [...MANUAL_ENTRIES, ...results.data].map(normalizeRow);
+      render(items);
+    },
+    error: (err) => {
+      console.error('CSV load failed for', url, err);
+      onFail(err && err.message ? err.message : 'unknown fetch error');
+    }
+  });
+}
+
+if (!CSV_URL){
+  loadDemo(`Showing demo content. Paste your published Google Sheet CSV link into <code>CSV_URL</code> near the top of the script to load your real work.`);
+} else {
+  loadFromUrl(CSV_URL, (primaryError) => {
+    console.warn('Primary CSV_URL failed (' + primaryError + '), trying fallback...');
+    loadFromUrl(CSV_URL_FALLBACK, (fallbackError) => {
+      console.warn('Fallback CSV_URL failed (' + fallbackError + '), trying CORS proxy...');
+      loadFromUrl(CSV_URL_PROXY, (proxyError) => {
+        loadDemo(`Couldn't load your sheet via any method (direct: <code>${primaryError}</code>, gviz: <code>${fallbackError}</code>, proxy: <code>${proxyError}</code>). Check the browser console for details. Showing demo content instead.`);
+      });
+    });
+  });
+}
+
+
+</script>
+
+<script>
+/* ---------- Custom cursor: blue dot that grows and says "Read" over entries
+   (isolated from the CSV-loading script above, so a data-load hiccup there
+   can never block this) ---------- */
+(function(){
+  const supportsHover = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+  if (!supportsHover) return;
+
+  const dot = document.createElement('div');
+  dot.className = 'cursor-dot';
+  dot.innerHTML = '<span>Read</span>';
+  document.body.appendChild(dot);
+
+  document.addEventListener('mousemove', (e) => {
+    dot.style.left = e.clientX + 'px';
+    dot.style.top = e.clientY + 'px';
+  });
+
+  document.addEventListener('mouseover', (e) => {
+    if (e.target.closest('.card-title')) dot.classList.add('reading');
+  });
+  document.addEventListener('mouseout', (e) => {
+    if (e.target.closest('.card-title')) dot.classList.remove('reading');
+  });
+})();
+
+/* ---------- Subtle click sound on any click, anywhere on the page ---------- */
+(function(){
+  let audioCtx = null;
+  let clickBuffer = null;
+
+  function buildClickBuffer(ctx){
+    // A tiny burst of filtered noise reads as a real mechanical "click,"
+    // where a pure tone just sounds like a soft beep.
+    const duration = 0.02; // 20ms
+    const length = Math.ceil(ctx.sampleRate * duration);
+    const buffer = ctx.createBuffer(1, length, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < length; i++){
+      // Sharp exponential decay envelope over white noise -- a crisp snap, not a tone.
+      const t = i / length;
+      const envelope = Math.pow(1 - t, 6);
+      data[i] = (Math.random() * 2 - 1) * envelope;
+    }
+    return buffer;
+  }
+
+  function playClick(){
+    try {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      if (!clickBuffer) clickBuffer = buildClickBuffer(audioCtx);
+
+      const source = audioCtx.createBufferSource();
+      source.buffer = clickBuffer;
+
+      // High-pass to keep it a crisp "tick" rather than a dull thud.
+      const filter = audioCtx.createBiquadFilter();
+      filter.type = 'highpass';
+      filter.frequency.setValueAtTime(1800, audioCtx.currentTime);
+
+      const gain = audioCtx.createGain();
+      gain.gain.setValueAtTime(0.35, audioCtx.currentTime);
+
+      source.connect(filter);
+      filter.connect(gain);
+      gain.connect(audioCtx.destination);
+      source.start();
+    } catch (err) {
+      // Web Audio unsupported or blocked -- fail silently, no sound is fine.
+    }
+  }
+  document.addEventListener('click', playClick);
+})();
+</script>
+
+</body>
+</html>
