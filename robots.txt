@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://pgwrites.github.io/writing-archive/sitemap.xml
